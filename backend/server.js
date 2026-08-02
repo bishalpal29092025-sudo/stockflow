@@ -16,31 +16,53 @@ const PORT = process.env.PORT || 5001;
  * ============================
  */
 
-// CORS Configuration
+// Log every request origin
+app.use((req, res, next) => {
+  console.log("=================================");
+  console.log("Origin:", req.headers.origin);
+  console.log("Method:", req.method);
+  console.log("URL:", req.originalUrl);
+  console.log("=================================");
+  next();
+});
+
+// Allowed Origins
+const allowedOrigins = [
+  "http://localhost:5173",
+  process.env.FRONTEND_URL,
+].filter(Boolean);
+
+// CORS
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173", // Local Development
-      process.env.FRONTEND_URL, // Vercel Frontend
-    ].filter(Boolean),
+    origin(origin, callback) {
+      // Allow Postman, curl, server-to-server requests
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      console.log("Blocked Origin:", origin);
+
+      return callback(new Error("Not allowed by CORS"));
+    },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
-// Parse JSON Request Body
+// Handle Preflight Requests
+app.options("*", cors());
+
 app.use(express.json());
 
 /**
  * ============================
- * API Routes
- * ============================
- */
-
-app.use("/api/products", productRoutes);
-
-/**
- * ============================
- * Root Route
+ * Routes
  * ============================
  */
 
@@ -48,9 +70,11 @@ app.get("/", (req, res) => {
   res.send("🚀 Product API is Running...");
 });
 
+app.use("/api/products", productRoutes);
+
 /**
  * ============================
- * Database Connection
+ * Database
  * ============================
  */
 
@@ -63,5 +87,9 @@ connectDB();
  */
 
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log("=================================");
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log("Allowed Origins:");
+  console.log(allowedOrigins);
+  console.log("=================================");
 });
