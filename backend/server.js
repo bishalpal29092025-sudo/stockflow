@@ -11,40 +11,57 @@ const app = express();
 const PORT = process.env.PORT || 5001;
 
 /**
+ * ============================
  * Middleware
+ * ============================
  */
+
+// CORS Configuration
 app.use(
   cors({
     origin: [
-      "http://localhost:5173", // Local Vite
-      process.env.FRONTEND_URL, // Production Frontend (Vercel)
+      "http://localhost:5173", // Local Development
+      process.env.FRONTEND_URL, // Vercel Frontend
     ].filter(Boolean),
     credentials: true,
   })
 );
 
+// Parse JSON Request Body
 app.use(express.json());
 
 /**
- * Routes
+ * ============================
+ * API Routes
+ * ============================
  */
+
 app.use("/api/products", productRoutes);
 
 /**
- * Health Check
+ * ============================
+ * Root Route
+ * ============================
  */
+
 app.get("/", (req, res) => {
   res.send("🚀 Product API is Running...");
 });
 
 /**
- * Database
+ * ============================
+ * Database Connection
+ * ============================
  */
+
 connectDB();
 
 /**
- * Server
+ * ============================
+ * Start Server
+ * ============================
  */
+
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
