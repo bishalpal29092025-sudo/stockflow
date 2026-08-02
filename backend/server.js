@@ -10,13 +10,7 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5001;
 
-/**
- * ============================
- * Middleware
- * ============================
- */
-
-// Log every request origin
+// Log every request
 app.use((req, res, next) => {
   console.log("=================================");
   console.log("Origin:", req.headers.origin);
@@ -26,7 +20,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Allowed Origins
+// Allowed origins
 const allowedOrigins = [
   "http://localhost:5173",
   process.env.FRONTEND_URL,
@@ -36,7 +30,7 @@ const allowedOrigins = [
 app.use(
   cors({
     origin(origin, callback) {
-      // Allow Postman, curl, server-to-server requests
+      // Allow Postman, curl, browser direct requests
       if (!origin) {
         return callback(null, true);
       }
@@ -55,37 +49,20 @@ app.use(
   })
 );
 
-// Handle Preflight Requests
-app.options("*", cors());
-
+// Parse JSON
 app.use(express.json());
 
-/**
- * ============================
- * Routes
- * ============================
- */
-
+// Routes
 app.get("/", (req, res) => {
   res.send("🚀 Product API is Running...");
 });
 
 app.use("/api/products", productRoutes);
 
-/**
- * ============================
- * Database
- * ============================
- */
-
+// Database
 connectDB();
 
-/**
- * ============================
- * Start Server
- * ============================
- */
-
+// Start Server
 app.listen(PORT, () => {
   console.log("=================================");
   console.log(`🚀 Server running on port ${PORT}`);
