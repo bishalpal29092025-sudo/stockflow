@@ -11,7 +11,7 @@ import {
 } from "@chakra-ui/react";
 
 import { useProductStore } from "@/store/product";
-import ProductCard from "@/components/ProductCard";
+import ProductCard from "@/components/product/ProductCard";
 
 export default function HomePage() {
   const { fetchProducts, products } = useProductStore();

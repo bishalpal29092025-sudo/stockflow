@@ -10,22 +10,41 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5001;
 
-// Middleware
-app.use(cors());
+/**
+ * Middleware
+ */
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173", // Local Vite
+      process.env.FRONTEND_URL, // Production Frontend (Vercel)
+    ].filter(Boolean),
+    credentials: true,
+  })
+);
+
 app.use(express.json());
 
-// Routes
+/**
+ * Routes
+ */
 app.use("/api/products", productRoutes);
 
-// Default Route
+/**
+ * Health Check
+ */
 app.get("/", (req, res) => {
   res.send("🚀 Product API is Running...");
 });
 
-// Database Connection
+/**
+ * Database
+ */
 connectDB();
 
-// Start Server
+/**
+ * Server
+ */
 app.listen(PORT, () => {
-  console.log(`🚀 Server started on port ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });

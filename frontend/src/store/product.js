@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { productService } from "@/services/product.service";
 
 export const useProductStore = create((set) => ({
   products: [],
@@ -16,119 +17,145 @@ export const useProductStore = create((set) => ({
       };
     }
 
-    const res = await fetch("/api/products", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(newProduct),
-    });
+    try {
+      const data = await productService.createProduct(newProduct);
 
-    const data = await res.json();
+      if (!data.success) {
+        return {
+          success: false,
+          message: data.message,
+        };
+      }
 
-    if (!data.success) {
+      set((state) => ({
+        products: [...state.products, data.data],
+      }));
+
       return {
-        success: false,
+        success: true,
         message: data.message,
       };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Failed to create product.",
+      };
     }
-
-    set((state) => ({
-      products: [...state.products, data.data],
-    }));
-
-    return {
-      success: true,
-      message: data.message,
-    };
   },
 
-  // Get All Products
+  // Fetch All Products
   fetchProducts: async () => {
-    const res = await fetch("/api/products");
-    const data = await res.json();
+    try {
+      const data = await productService.getProducts();
 
-    set({
-      products: data.data,
-    });
-  },
+      if (!data.success) {
+        return {
+          success: false,
+          message: data.message,
+        };
+      }
 
-  // Get Product By ID
-  fetchProductById: async (id) => {
-    const res = await fetch(`/api/products/${id}`);
-    const data = await res.json();
+      set({
+        products: data.data,
+      });
 
-    if (!data.success) {
+      return {
+        success: true,
+      };
+    } catch (error) {
       return {
         success: false,
-        message: data.message,
+        message: error.message || "Failed to fetch products.",
       };
     }
+  },
 
-    set({
-      product: data.data,
-    });
+  // Fetch Product By ID
+  fetchProductById: async (id) => {
+    try {
+      const data = await productService.getProductById(id);
 
-    return {
-      success: true,
-      product: data.data,
-    };
+      if (!data.success) {
+        return {
+          success: false,
+          message: data.message,
+        };
+      }
+
+      set({
+        product: data.data,
+      });
+
+      return {
+        success: true,
+        product: data.data,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Failed to fetch product.",
+      };
+    }
   },
 
   // Update Product
   updateProduct: async (id, updatedProduct) => {
-    const res = await fetch(`/api/products/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(updatedProduct),
-    });
+    try {
+      const data = await productService.updateProduct(id, updatedProduct);
 
-    const data = await res.json();
+      if (!data.success) {
+        return {
+          success: false,
+          message: data.message,
+        };
+      }
 
-    if (!data.success) {
+      set((state) => ({
+        products: state.products.map((product) =>
+          product._id === id ? data.data : product
+        ),
+        product: data.data,
+      }));
+
       return {
-        success: false,
+        success: true,
         message: data.message,
       };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Failed to update product.",
+      };
     }
-
-    set((state) => ({
-      products: state.products.map((product) =>
-        product._id === id ? data.data : product
-      ),
-      product: data.data,
-    }));
-
-    return {
-      success: true,
-      message: data.message,
-    };
   },
 
   // Delete Product
   deleteProduct: async (id) => {
-    const res = await fetch(`/api/products/${id}`, {
-      method: "DELETE",
-    });
+    try {
+      const data = await productService.deleteProduct(id);
 
-    const data = await res.json();
+      if (!data.success) {
+        return {
+          success: false,
+          message: data.message,
+        };
+      }
 
-    if (!data.success) {
+      set((state) => ({
+        products: state.products.filter(
+          (product) => product._id !== id
+        ),
+      }));
+
       return {
-        success: false,
+        success: true,
         message: data.message,
       };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Failed to delete product.",
+      };
     }
-
-    set((state) => ({
-      products: state.products.filter((product) => product._id !== id),
-    }));
-
-    return {
-      success: true,
-      message: data.message,
-    };
   },
 }));
